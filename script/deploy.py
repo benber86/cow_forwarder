@@ -4,6 +4,10 @@ producing a deterministic address that is identical across every chain
 we target — even though the constructor args (fee_receiver, owner) may
 differ per chain.
 
+Per-chain (fee_receiver, owner) live in CHAIN_CONFIG below — committed
+with the code, reviewed in PRs, no env vars to mis-set at deploy time.
+Adding a new chain means adding an entry there.
+
 Usage:
   uv run mox run deploy --network mainnet-fork    # dry run
   uv run mox run deploy --network mainnet         # live
@@ -11,7 +15,7 @@ Usage:
 """
 
 import json
-import os
+from dataclasses import dataclass
 
 import boa
 from eth_abi import encode as abi_encode
@@ -19,6 +23,36 @@ from eth_utils import keccak, to_bytes, to_checksum_address
 
 from moccasin.boa_tools import VyperContract
 from moccasin.config import get_active_network
+
+
+@dataclass(frozen=True)
+class ChainConfig:
+    fee_receiver: str
+    owner: str
+
+
+CHAIN_CONFIG: dict[int, ChainConfig] = {
+    # Ethereum
+    # 1: ChainConfig(
+    #     fee_receiver="0x...",
+    #     owner="0x...",
+    # ),
+    # Arbitrum
+    42161: ChainConfig(
+        fee_receiver="0xd4F94D0aaa640BBb72b5EEc2D85F6D114D81a88E",
+        owner="0x452030a5D962d37D97A9D65487663cD5fd9C2B32",
+    ),
+    # Gnosis
+    100: ChainConfig(
+        fee_receiver="0xBb7404F9965487a9DdE721B3A5F0F3CcfA9aa4C5",
+        owner="0x0b98718264cA14d0A17C145FfE1e4F3c38a39372",
+    ),
+    # Sepolia
+    11155111: ChainConfig(
+        fee_receiver="0x0b98718264cA14d0A17C145FfE1e4F3c38a39372",
+        owner="0x0b98718264cA14d0A17C145FfE1e4F3c38a39372",
+    ),
+}
 
 
 # CreateX — same address on every chain (pre-signed deterministic deploy).
@@ -84,24 +118,15 @@ def _get_createx():
     return boa.loads_abi(json.dumps(CREATEX_ABI), name="CreateX").at(CREATEX_ADDRESS)
 
 
-def _read_constructor_args() -> tuple[str, str]:
-    fee_receiver = os.environ.get("COW_FORWARDER_FEE_RECEIVER")
-    owner = os.environ.get("COW_FORWARDER_OWNER")
-    missing = [
-        name
-        for name, val in [
-            ("COW_FORWARDER_FEE_RECEIVER", fee_receiver),
-            ("COW_FORWARDER_OWNER", owner),
-        ]
-        if not val
-    ]
-    if missing:
+def _read_constructor_args(chain_id: int, network_name: str) -> tuple[str, str]:
+    cfg = CHAIN_CONFIG.get(chain_id)
+    if cfg is None:
         raise RuntimeError(
-            f"Missing required environment variable(s): {', '.join(missing)}. "
-            f"Set them in .env before running deploy — they are baked into "
-            f"the deployed contract and cannot be changed without redeploying."
+            f"No CHAIN_CONFIG entry for chain_id={chain_id} (network={network_name}). "
+            f"Add one to script/deploy.py before deploying — fee_receiver and owner "
+            f"are baked into the contract and cannot be changed without redeploying."
         )
-    return to_checksum_address(fee_receiver), to_checksum_address(owner)
+    return to_checksum_address(cfg.fee_receiver), to_checksum_address(cfg.owner)
 
 
 def deploy() -> VyperContract:
@@ -109,7 +134,7 @@ def deploy() -> VyperContract:
     chain_id = network.chain_id
     name = network.name
 
-    fee_receiver, owner = _read_constructor_args()
+    fee_receiver, owner = _read_constructor_args(chain_id, name)
 
     deployer_account = network.get_default_account()
     deployer_addr = (
