@@ -30,6 +30,44 @@ fork = false
 default_account_name = "gramsci"
 
 
+[networks.arbitrum]
+url = "${ARBITRUM_RPC_URL}"
+explorer_uri = "https://api.etherscan.io/v2/api"
+explorer_type = "etherscan"
+explorer_api_key = "${ETHERSCAN_TOKEN}"
+chain_id = 42161
+fork = false
+default_account_name = "gramsci"
+
+
+[networks.arbitrum-fork]
+url = "${ARBITRUM_RPC_URL}"
+explorer_uri = "https://api.etherscan.io/v2/api"
+explorer_type = "etherscan"
+explorer_api_key = "${ETHERSCAN_TOKEN}"
+chain_id = 42161
+fork = true
+
+
+[networks.gnosis]
+url = "${GNOSIS_RPC_URL}"
+explorer_uri = "https://api.etherscan.io/v2/api"
+explorer_type = "etherscan"
+explorer_api_key = "${ETHERSCAN_TOKEN}"
+chain_id = 100
+fork = false
+default_account_name = "gramsci"
+
+
+[networks.gnosis-fork]
+url = "${GNOSIS_RPC_URL}"
+explorer_uri = "https://api.etherscan.io/v2/api"
+explorer_type = "etherscan"
+explorer_api_key = "${ETHERSCAN_TOKEN}"
+chain_id = 100
+fork = true
+
+
 [networks.sepolia]
 url = "${SEPOLIA_RPC_URL}"
 explorer_uri = "https://api.etherscan.io/v2/api"
