@@ -33,14 +33,15 @@ class ChainConfig:
 
 CHAIN_CONFIG: dict[int, ChainConfig] = {
     # Ethereum
-    # 1: ChainConfig(
-    #     fee_receiver="0x...",
-    #     owner="0x...",
-    # ),
+    1: ChainConfig(
+        fee_receiver="0x6508eF65B0BD57EabD0F1D52685A70433B2D290B",
+        owner="0x0b98718264cA14d0A17C145FfE1e4F3c38a39372",
+    ),
     # Arbitrum
     42161: ChainConfig(
         fee_receiver="0xd4F94D0aaa640BBb72b5EEc2D85F6D114D81a88E",
-        owner="0x452030a5D962d37D97A9D65487663cD5fd9C2B32",
+        # previous owner: 0x452030a5D962d37D97A9D65487663cD5fd9C2B32
+        owner="0x0b98718264cA14d0A17C145FfE1e4F3c38a39372",
     ),
     # Gnosis
     100: ChainConfig(
